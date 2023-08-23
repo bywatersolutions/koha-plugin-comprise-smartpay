@@ -55,7 +55,7 @@
                 {
                     "name": "amount",
                     "in": "path",
-                    "description": "List of comma separated accountline id's",
+                    "description": "Amount to pay",
                     "required": true,
                     "type": "string"
                 }
@@ -65,7 +65,7 @@
             ],
             "responses": {
                 "200": {
-                    "description": "JSON data of accountlines"
+                    "description": "JSON data of results"
                 },
                 "404": {
                     "description": "An error occured",
@@ -82,25 +82,28 @@
             }
         }
     },
-    "/message/{message_id}/amd": {
-        "post": {
-            "x-mojo-to": "Com::ByWaterSolutions::CompriseSmartPAY::API#amd_callback",
-            "operationId": "AsyncAmdStatusCallback",
+    "/query_result/{tracknumber}": {
+        "get": {
+            "x-mojo-to": "Com::ByWaterSolutions::CompriseSmartPAY::API#query_result",
+            "operationId": "QueryResult",
             "tags": [
-                "messages"
+                "smartpay"
             ],
             "parameters": [
                 {
-                    "name": "message_id",
+                    "name": "tracknumber",
                     "in": "path",
-                    "description": "Internal patron message identifier",
+                    "description": "Track number returned by send_transaction",
                     "required": true,
-                    "type": "integer"
+                    "type": "string"
                 }
+            ],
+            "produces": [
+                "application/json"
             ],
             "responses": {
                 "200": {
-                    "description": "Message updated"
+                    "description": "JSON data of results"
                 },
                 "404": {
                     "description": "An error occured",
