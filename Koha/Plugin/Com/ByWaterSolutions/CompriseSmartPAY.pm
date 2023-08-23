@@ -79,7 +79,102 @@ sub configure {
     }
 }
 
-sub install() {
+## TODO: rename to correct name once js is complete
+sub js {
+    return q|
+$(document).ready(function() {
+    const smartpayButton = `<input style="margin-left: 5px" type="submit" id="pay-selected-via-smartpay" name="pay_via_smartpay" value="Pay via SmartPAY" class="submit"> 
+  <div class="modal fade" id="smartpayModal" role="dialog">
+    <div class="modal-dialog">    
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 id="smartpay-title" class="modal-title">Comprise SmartPAY processing</h4>
+        </div>
+        <div id="smartpay-body" class="modal-body">
+          Payment in progress...
+        </div>
+      </div>
+    </div>
+  </div>`;
+    $(smartpayButton).insertAfter('#writeoff-selected');
+
+    $("#pay-selected-via-smartpay").on("click", function(e) {
+        e.preventDefault();
+
+        let accountline_ids = [];
+        $(".cb:checked").each(function() {
+            const id = $(this).attr("name").split("_")[2];
+            accountline_ids.push(id);
+        });
+
+        const accountlines = encodeURIComponent(accountline_ids.join());
+
+        const debit_url = `http://192.168.1.20:8081/api/v1/contrib/smartpay/get_debits/${accountlines}`;
+        $.getJSON(debit_url, function(data) {
+            const total = data.total;
+            let amount = prompt("Enter amount to collect", total);
+            console.log(amount);
+            if (amount != null) {
+                const regex = /^\d*(\.\d{1,2})?\s*$/;
+                if (regex.test(amount)) {
+                    //Start pay station
+                    function getCookie(name) {
+                        let value = `; ${document.cookie}`;
+                        let parts = value.split(`; ${name}=`);
+                        if (parts.length === 2) return parts.pop().split(';').shift();
+                    }
+                    amount = encodeURIComponent(amount * 100); // Periods asplode things, so we send the amount in cents
+                    const send_transaction_url = `/api/v1/contrib/smartpay/send_transaction/${accountlines}/${amount}`;
+                    $.getJSON(send_transaction_url, function(data) {
+                        console.log(data);
+
+                        if (data.ret == 0) {
+                            $('#smartpayModal').modal({
+                                backdrop: 'static',
+                                keyboard: false
+                            });
+                            const tracknumber = data.tracknumber;
+                            const query_result_url = `/api/v1/contrib/smartpay/query_result/${tracknumber}`;
+                          
+                            let myVar = setInterval(myTimer, 1000);
+
+                            function myTimer() {
+                                $.getJSON(query_result_url, function(data) {
+                                  console.log(data);
+                                    if (data.status == "Failed") {
+                                        $('#smartpayModal').modal('hide');
+                                        clearInterval(myVar);
+                                        console.log("ERROR: " + data.error);                                      
+                                        alert("Transaction Canceled");
+                                    }
+                                    if ( data.status == "Canceled" ) {
+                                        $('#smartpayModal').modal('hide');
+                                        clearInterval(myVar);
+                                        alert("Transaction Canceled");
+                                    }
+                                    if ( data.status == "Success" ) {
+                                        $('#smartpayModal').modal('hide');
+                                        clearInterval(myVar);
+                                        alert("ERROR: " + data.error);
+                                    }
+                                });
+                            }
+                        } else {
+                            alert("ERROR: " + data.error);
+                        }
+                    });
+                } else {
+                    alert(`The amount "${amount}" is invalid. Please specify as a currency format ( e.g. 1.00 )`);
+                }
+            }
+        });
+
+    });
+
+});
+|;
+
+sub install {
     my ($self, $args) = @_;
 
     return 1;
