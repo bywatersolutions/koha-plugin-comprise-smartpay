@@ -119,5 +119,147 @@
                 }
             }
         }
+    },
+    "/end_transaction/{tracknumber}/{accountlines}/{amount}": {
+        "get": {
+            "x-mojo-to": "Com::ByWaterSolutions::CompriseSmartPAY::API#end_transaction",
+            "operationId": "EndTransaction",
+            "tags": [
+                "smartpay"
+            ],
+            "parameters": [
+                {
+                    "name": "tracknumber",
+                    "in": "path",
+                    "description": "Track number returned by send_transaction",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "accountlines",
+                    "in": "path",
+                    "description": "List of comma separated accountline id's",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "amount",
+                    "in": "path",
+                    "description": "Amount to pay",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "produces": [
+                "application/json"
+            ],
+            "responses": {
+                "200": {
+                    "description": "JSON data of results"
+                },
+                "404": {
+                    "description": "An error occured",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "error": {
+                                "description": "An explanation for the error",
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "/end_transaction_cancel/{tracknumber}/{amount}": {
+        "get": {
+            "x-mojo-to": "Com::ByWaterSolutions::CompriseSmartPAY::API#end_transaction_cancel",
+            "operationId": "EndTransactionCancel",
+            "tags": [
+                "smartpay"
+            ],
+            "parameters": [
+                {
+                    "name": "tracknumber",
+                    "in": "path",
+                    "description": "Track number returned by send_transaction",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "amount",
+                    "in": "path",
+                    "description": "Amount to pay",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "produces": [
+                "application/json"
+            ],
+            "responses": {
+                "200": {
+                    "description": "JSON data of results"
+                },
+                "404": {
+                    "description": "An error occured",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "error": {
+                                "description": "An explanation for the error",
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "/get_reciept/{tracknumber}/{payment_id}": {
+        "get": {
+            "x-mojo-to": "Com::ByWaterSolutions::CompriseSmartPAY::API#get_reciept",
+            "operationId": "GetReceipt",
+            "tags": [
+                "smartpay"
+            ],
+            "parameters": [
+                {
+                    "name": "tracknumber",
+                    "in": "path",
+                    "description": "Track number returned by send_transaction",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "payment_id",
+                    "in": "path",
+                    "description": "Payment id returned by end_transaction",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "produces": [
+                "text/html"
+            ],
+            "responses": {
+                "200": {
+                    "description": "Rendered receipt for printing"
+                },
+                "404": {
+                    "description": "An error occured",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "error": {
+                                "description": "An explanation for the error",
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

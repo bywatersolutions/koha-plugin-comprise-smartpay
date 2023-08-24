@@ -80,7 +80,7 @@ sub configure {
 }
 
 ## TODO: rename to correct name once js is complete
-sub js {
+sub intranet_js {
     return q|
 $(document).ready(function() {
     const smartpayButton = `<input style="margin-left: 5px" type="submit" id="pay-selected-via-smartpay" name="pay_via_smartpay" value="Pay via SmartPAY" class="submit"> 
@@ -93,10 +93,21 @@ $(document).ready(function() {
         <div id="smartpay-body" class="modal-body">
           Payment in progress...
         </div>
+        <div class="modal-footer">
+          <button id="smartpay-cancel" type="button" class="btn btn-default">Cancel</button>
+        </div>
       </div>
     </div>
   </div>`;
     $(smartpayButton).insertAfter('#writeoff-selected');
+
+    $('.cb').on("change", function() {
+        if ($('.cb:checkbox:checked').length > 0) {
+            $('#pay-selected-via-smartpay').removeAttr("disabled");
+        } else {
+            $('#pay-selected-via-smartpay').attr("disabled", "disabled");
+        }
+    });
 
     $("#pay-selected-via-smartpay").on("click", function(e) {
         e.preventDefault();
@@ -113,7 +124,6 @@ $(document).ready(function() {
         $.getJSON(debit_url, function(data) {
             const total = data.total;
             let amount = prompt("Enter amount to collect", total);
-            console.log(amount);
             if (amount != null) {
                 const regex = /^\d*(\.\d{1,2})?\s*$/;
                 if (regex.test(amount)) {
@@ -126,8 +136,6 @@ $(document).ready(function() {
                     amount = encodeURIComponent(amount * 100); // Periods asplode things, so we send the amount in cents
                     const send_transaction_url = `/api/v1/contrib/smartpay/send_transaction/${accountlines}/${amount}`;
                     $.getJSON(send_transaction_url, function(data) {
-                        console.log(data);
-
                         if (data.ret == 0) {
                             $('#smartpayModal').modal({
                                 backdrop: 'static',
@@ -135,27 +143,51 @@ $(document).ready(function() {
                             });
                             const tracknumber = data.tracknumber;
                             const query_result_url = `/api/v1/contrib/smartpay/query_result/${tracknumber}`;
-                          
                             let myVar = setInterval(myTimer, 1000);
+
+                            $('#smartpay-cancel').on('click', function() {
+                                clearInterval(myVar);
+
+                                const cancel_transaction_url = `/api/v1/contrib/smartpay/end_transaction_cancel/${tracknumber}/${amount}`;
+                                $.getJSON(cancel_transaction_url, function(data) {
+                                    console.log(data);
+
+                                    $('#smartpayModal').modal('hide');
+
+                                    if (data.ret == 1) {
+                                        alert("ERROR ENDING TRANSACTION: " + data.error);
+                                    }
+                                });
+                            });
+
 
                             function myTimer() {
                                 $.getJSON(query_result_url, function(data) {
-                                  console.log(data);
+                                    console.log(data);
                                     if (data.status == "Failed") {
                                         $('#smartpayModal').modal('hide');
                                         clearInterval(myVar);
-                                        console.log("ERROR: " + data.error);                                      
                                         alert("Transaction Canceled");
                                     }
-                                    if ( data.status == "Canceled" ) {
+                                    if (data.status == "Canceled") {
                                         $('#smartpayModal').modal('hide');
                                         clearInterval(myVar);
                                         alert("Transaction Canceled");
                                     }
-                                    if ( data.status == "Success" ) {
+                                    if (data.status == "Success") {
                                         $('#smartpayModal').modal('hide');
                                         clearInterval(myVar);
-                                        alert("ERROR: " + data.error);
+                                        const end_transaction_url = `/api/v1/contrib/smartpay/end_transaction/${tracknumber}/${accountlines}/${amount}`;
+                                        $.getJSON(end_transaction_url, function(data) {
+                                            if (data.ret == 1) {
+                                                $('#smartpayModal').modal('hide');
+                                                alert("ERROR ENDING TRANSACTION: " + data.error);
+                                            } else {
+                                                //const get_receipt_url = `/api/v1/contrib/smartpay/get_receipt/${tracknumber}`;
+                                                const get_receipt_url = `/cgi-bin/koha/members/printfeercpt.pl?action=print&accountlines_id=${data.payment_id}`;
+                                                window.open(get_receipt_url, "Receipt", 'width=600,height=600,resizable=yes,toolbar=false,scrollbars=yes,top');
+                                            }
+                                        });
                                     }
                                 });
                             }
@@ -173,6 +205,7 @@ $(document).ready(function() {
 
 });
 |;
+}
 
 sub install {
     my ($self, $args) = @_;
