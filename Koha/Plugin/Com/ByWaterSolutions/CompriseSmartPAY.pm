@@ -185,7 +185,15 @@ $(document).ready(function() {
                                             } else {
                                                 //const get_receipt_url = `/api/v1/contrib/smartpay/get_receipt/${tracknumber}`;
                                                 const get_receipt_url = `/cgi-bin/koha/members/printfeercpt.pl?action=print&accountlines_id=${data.payment_id}`;
-                                                window.open(get_receipt_url, "Receipt", 'width=600,height=600,resizable=yes,toolbar=false,scrollbars=yes,top');
+                                                const child = window.open(get_receipt_url, "Receipt", 'width=600,height=600,resizable=yes,toolbar=false,scrollbars=yes,top');
+                                                const timer = setInterval(checkChild, 500);
+
+                                                function checkChild() {
+                                                    if (child.closed) {
+                                                        clearInterval(timer);
+                                                        location.reload();
+                                                    }
+                                                }
                                             }
                                         });
                                     }
