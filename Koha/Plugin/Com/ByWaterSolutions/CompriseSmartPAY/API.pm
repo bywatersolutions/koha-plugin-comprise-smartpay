@@ -360,68 +360,6 @@ sub end_transaction_cancel {
     return $c->render( status => 200, format => "json", text => $json );
 }
 
-sub get_receipt {
-    warn
-      "Koha::Plugin::Com::ByWaterSolutions::CompriseSmartPAY::API::get_receipt";
-    my $c = shift->openapi->valid_input or return;
-
-    my $track_number = $c->param('tracknumber');
-
-    my $self = Koha::Plugin::Com::ByWaterSolutions::CompriseSmartPAY->new( {} );
-
-    my $CustomerId      = $self->retrieve_data('CustomerId');
-    my $UserName        = $self->retrieve_data('UserName');
-    my $Password        = $self->retrieve_data('Password');
-    my $ServerAddress   = $self->retrieve_data('ServerAddress');
-    my $RegisterMapping = $self->retrieve_data('RegisterMapping');
-
-    my $mapping = Load($RegisterMapping);
-
-    my $register_id = C4::Context->userenv->{register_id};
-
-    my $terminal_id = $mapping->{$register_id};
-    return $c->render(
-        status => 404,
-        format => "json",
-        json   => {
-            error       => "TERM",
-            description => "Terminal mapping for register $register_id found"
-        }
-    ) unless $terminal_id;
-
-    my $header = HTTP::Headers->new;
-    $header->header( 'Content-Type' => 'application/json; charset=utf-8' );
-    $header->header( 'accept'       => 'application/json' );
-
-    my $uuid    = generate_uuid();
-    my $content = {
-        CustomerID => $CustomerId,
-        TerminalID => $terminal_id,
-        UserName   => $UserName,
-        Password   => $Password,
-        TrackNo    => $track_number,
-    };
-    my $params =
-      join( '&', map { "$_=" . uri_escape( $content->{$_} ) } keys %$content );
-
-    my $url = "$ServerAddress?GetEMVReceiptData&$params";
-
-    my $ua = LWP::UserAgent->new;
-
-    my $request  = HTTP::Request::Common::GET( $url, Header => $header, );
-    my $response = $ua->request($request);
-
-    unless ( $response->is_success ) {
-        warn "Comprise SmartPAY response indicates failure: "
-          . $response->status_line;
-    }
-
-    my $json = $response->decoded_content;
-    warn "CANCEL JSON: $json";
-
-    return $c->render( status => 200, format => "json", text => $json );
-}
-
 sub generate_uuid {
     my $uuid = '';
     for ( 1 .. 4 ) {

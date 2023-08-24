@@ -216,50 +216,5 @@
                 }
             }
         }
-    },
-    "/get_reciept/{tracknumber}/{payment_id}": {
-        "get": {
-            "x-mojo-to": "Com::ByWaterSolutions::CompriseSmartPAY::API#get_reciept",
-            "operationId": "GetReceipt",
-            "tags": [
-                "smartpay"
-            ],
-            "parameters": [
-                {
-                    "name": "tracknumber",
-                    "in": "path",
-                    "description": "Track number returned by send_transaction",
-                    "required": true,
-                    "type": "string"
-                },
-                {
-                    "name": "payment_id",
-                    "in": "path",
-                    "description": "Payment id returned by end_transaction",
-                    "required": true,
-                    "type": "string"
-                }
-            ],
-            "produces": [
-                "text/html"
-            ],
-            "responses": {
-                "200": {
-                    "description": "Rendered receipt for printing"
-                },
-                "404": {
-                    "description": "An error occured",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "error": {
-                                "description": "An explanation for the error",
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }
