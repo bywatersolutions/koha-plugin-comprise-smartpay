@@ -275,19 +275,16 @@ sub end_transaction {
 
     my $data = decode_json($json);
 
-    if ( $data->{ret} == 0 ) {
+    if ($data->{ret} == 0) {
         my $patron_id = $accountlines[0]->borrowernumber;
-        my $d         = Koha::Account->new( { patron_id => $patron_id } )->pay(
-            {
-                amount => $amount,
-
-            #note        => "CC: $data->{digits}, Auth Code: $data->{authcode}",
-                description  => "Payment via Comprise SmartPAY",
-                library_id   => C4::Context->userenv->{branch},
-                lines        => \@accountlines,
-                payment_type => "CREDITCARD",
-            }
-        );
+        my $d         = Koha::Account->new({patron_id => $patron_id})->pay({
+            amount       => $amount,
+            note         => "CC: $data->{digits}, Auth Code: $data->{authcode}",
+            description  => "Payment via Comprise SmartPAY",
+            library_id   => C4::Context->userenv->{branch},
+            lines        => \@accountlines,
+            payment_type => "CREDITCARD",
+        });
         $data->{payment_id} = $d->{payment_id};
         $json = encode_json($data);
     }
