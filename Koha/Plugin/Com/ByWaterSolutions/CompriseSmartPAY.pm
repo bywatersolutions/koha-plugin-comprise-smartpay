@@ -25,11 +25,12 @@ our $metadata = {
     minimum_version => $MINIMUM_VERSION,
     maximum_version => undef,
     version         => $VERSION,
-    description     => 'This plugin enables sending of phone message to patrons via Twilio.',
+    description =>
+      'This plugin enables sending of phone message to patrons via Twilio.',
 };
 
 sub new {
-    my ($class, $args) = @_;
+    my ( $class, $args ) = @_;
 
     ## We need to add our metadata here so our base class can access it
     $args->{'metadata'} = $metadata;
@@ -44,11 +45,11 @@ sub new {
 }
 
 sub configure {
-    my ($self, $args) = @_;
+    my ( $self, $args ) = @_;
     my $cgi = $self->{'cgi'};
 
-    unless ($cgi->param('save')) {
-        my $template = $self->get_template({file => 'configure.tt'});
+    unless ( $cgi->param('save') ) {
+        my $template = $self->get_template( { file => 'configure.tt' } );
 
         ## Grab the values we already have for our settings, if any exist
         $template->param(
@@ -62,19 +63,21 @@ sub configure {
             RegisterMapping => $self->retrieve_data('RegisterMapping'),
         );
 
-        $self->output_html($template->output());
+        $self->output_html( $template->output() );
     }
     else {
-        $self->store_data({
-            CustomerId      => $cgi->param('CustomerId'),
-            CustomerName    => $cgi->param('CustomerName'),
-            UserName        => $cgi->param('UserName'),
-            Password        => $cgi->param('Password'),
-            ApiKey          => $cgi->param('ApiKey'),
-            ServerIP        => $cgi->param('ServerIP'),
-            ServerAddress   => $cgi->param('ServerAddress'),
-            RegisterMapping => $cgi->param('RegisterMapping'),
-        });
+        $self->store_data(
+            {
+                CustomerId      => $cgi->param('CustomerId'),
+                CustomerName    => $cgi->param('CustomerName'),
+                UserName        => $cgi->param('UserName'),
+                Password        => $cgi->param('Password'),
+                ApiKey          => $cgi->param('ApiKey'),
+                ServerIP        => $cgi->param('ServerIP'),
+                ServerAddress   => $cgi->param('ServerAddress'),
+                RegisterMapping => $cgi->param('RegisterMapping'),
+            }
+        );
         $self->go_home();
     }
 }
@@ -121,7 +124,7 @@ $(document).ready(function() {
 
         const accountlines = encodeURIComponent(accountline_ids.join());
 
-        const debit_url = `http://192.168.1.20:8081/api/v1/contrib/smartpay/get_debits/${accountlines}`;
+        const debit_url = `/api/v1/contrib/smartpay/get_debits/${accountlines}`;
         $.getJSON(debit_url, function(data) {
             console.log(data);
             const total = data.total;
@@ -135,8 +138,9 @@ $(document).ready(function() {
                         let parts = value.split(`; ${name}=`);
                         if (parts.length === 2) return parts.pop().split(';').shift();
                     }
-                    amount = encodeURIComponent(amount * 100); // Periods asplode things, so we send the amount in cents
+                    amount = encodeURIComponent(Math.round(amount * 100)); // Periods asplode things, so we send the amount in cents
                     const send_transaction_url = `/api/v1/contrib/smartpay/send_transaction/${accountlines}/${amount}`;
+                    console.log("SendTransaction URL: " + send_transaction_url);
                     $.getJSON(send_transaction_url, function(data) {
                         console.log(data);
                         if (data.ret == 0) {
@@ -182,6 +186,7 @@ $(document).ready(function() {
                                         clearInterval(myVar);
                                         const end_transaction_url = `/api/v1/contrib/smartpay/end_transaction/${tracknumber}/${accountlines}/${amount}`;
                                         $.getJSON(end_transaction_url, function(data) {
+                                            console.log(data);
                                             if (data.ret == 1) {
                                                 $('#smartpayModal').modal('hide');
                                                 alert("ERROR ENDING TRANSACTION: " + data.error);
@@ -220,25 +225,25 @@ $(document).ready(function() {
 }
 
 sub install {
-    my ($self, $args) = @_;
+    my ( $self, $args ) = @_;
 
     return 1;
 }
 
 sub upgrade {
-    my ($self, $args) = @_;
+    my ( $self, $args ) = @_;
 
     return 1;
 }
 
 sub uninstall() {
-    my ($self, $args) = @_;
+    my ( $self, $args ) = @_;
 
     return 1;
 }
 
 sub api_routes {
-    my ($self, $args) = @_;
+    my ( $self, $args ) = @_;
 
     my $spec_str = $self->mbf_read('openapi.json');
     my $spec     = decode_json($spec_str);

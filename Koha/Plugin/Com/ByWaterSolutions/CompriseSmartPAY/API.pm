@@ -65,8 +65,8 @@ sub send_transaction {
     my $c = shift->openapi->valid_input or return;
 
     my $accountline_ids = $c->param('accountlines');
-    my $amount          = $c->param('amount') /
-      100;    # Periods asplode things, so we recieve the amount in cents
+    my $amount          = sprintf( "%.2f", $c->param('amount') / 100 )
+      ;    # Periods asplode things, so we recieve the amount in cents
 
     # Look up the patron from the first accountline
     my ($id)        = split( /,/, $accountline_ids );
@@ -130,8 +130,8 @@ sub send_transaction {
 
     my $json = $response->decoded_content;
 
-    warn "REQUEST: $url";
-    warn "RESPONSE: $json";
+    warn "SendTransacation REQUEST: $url";
+    warn "SendTransacation RESPONSE: $json";
 
     return $c->render( status => 200, format => "json", text => $json );
 }
@@ -194,8 +194,8 @@ sub query_result {
 
     my $json = $response->decoded_content;
 
-    warn "REQUEST: $url";
-    warn "RESPONSE: $json";
+    warn "QueryResult REQUEST: $url";
+    warn "QueryResult RESPONSE: $json";
 
     return $c->render( status => 200, format => "json", text => $json );
 }
@@ -207,8 +207,8 @@ sub end_transaction {
 
     my $track_number    = $c->param('tracknumber');
     my $accountline_ids = $c->param('accountlines');
-    my $amount          = $c->param('amount') /
-      100;    # Periods asplode things, so we recieve the amount in cents
+    my $amount          = sprintf( "%.2f", $c->param('amount') / 100 )
+      ;    # Periods asplode things, so we recieve the amount in cents
 
     warn "Track Number: $track_number";
     warn "Accountlines: $accountline_ids";
@@ -270,14 +270,12 @@ sub end_transaction {
 
     my $json = $response->decoded_content;
 
-    warn "REQUEST: $url";
-    warn "RESPONSE: $json";
+    warn "EndTransaction REQUEST: $url";
+    warn "EndTransaction RESPONSE: $json";
 
-    my $data =
-      {};    #my $data = decode_json($json); ##FIXME: API is only returning XML
+    my $data = decode_json($json);
 
     if ( $data->{ret} == 0 ) {
-        warn "PAYMENT SUCCESSFUL!";
         my $patron_id = $accountlines[0]->borrowernumber;
         my $d         = Koha::Account->new( { patron_id => $patron_id } )->pay(
             {
@@ -303,8 +301,8 @@ sub end_transaction_cancel {
     my $c = shift->openapi->valid_input or return;
 
     my $track_number = $c->param('tracknumber');
-    my $amount       = $c->param('amount') /
-      100;    # Periods asplode things, so we recieve the amount in cents
+    my $amount       = sprintf( "%.2f", $c->param('amount') / 100 )
+      ;    # Periods asplode things, so we recieve the amount in cents
 
     warn "Track Number: $track_number";
     warn "Amount: $amount";
@@ -361,8 +359,8 @@ sub end_transaction_cancel {
 
     my $json = $response->decoded_content;
 
-    warn "REQUEST: $url";
-    warn "RESPONSE: $json";
+    warn "EndTransaction REQUEST: $url";
+    warn "EndTransaction RESPONSE: $json";
 
     $json = encode_json( { ret => 0 } )
       ;    #FIXME once we are getting JSON, hard coded to success
