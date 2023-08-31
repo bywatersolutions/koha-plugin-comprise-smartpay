@@ -120,7 +120,7 @@ sub send_transaction {
 
     my $ua = LWP::UserAgent->new;
 
-    my $request  = HTTP::Request::Common::GET( $url, Header => $header, );
+    my $request  = HTTP::Request::Common::GET( $url, Header => $header );
     my $response = $ua->request($request);
 
     unless ( $response->is_success ) {
@@ -129,6 +129,9 @@ sub send_transaction {
     }
 
     my $json = $response->decoded_content;
+
+    warn "REQUEST: $url";
+    warn "RESPONSE: $json";
 
     return $c->render( status => 200, format => "json", text => $json );
 }
@@ -181,7 +184,7 @@ sub query_result {
 
     my $ua = LWP::UserAgent->new;
 
-    my $request  = HTTP::Request::Common::GET( $url, Header => $header, );
+    my $request  = HTTP::Request::Common::GET( $url, Header => $header );
     my $response = $ua->request($request);
 
     unless ( $response->is_success ) {
@@ -190,6 +193,9 @@ sub query_result {
     }
 
     my $json = $response->decoded_content;
+
+    warn "REQUEST: $url";
+    warn "RESPONSE: $json";
 
     return $c->render( status => 200, format => "json", text => $json );
 }
@@ -251,11 +257,10 @@ sub end_transaction {
       join( '&', map { "$_=" . uri_escape( $content->{$_} ) } keys %$content );
 
     my $url = "$ServerAddress?EndTransaction&$params";
-    warn "URL: $url";
 
     my $ua = LWP::UserAgent->new;
 
-    my $request  = HTTP::Request::Common::GET( $url, Header => $header, );
+    my $request  = HTTP::Request::Common::GET( $url, Header => $header );
     my $response = $ua->request($request);
 
     unless ( $response->is_success ) {
@@ -264,7 +269,10 @@ sub end_transaction {
     }
 
     my $json = $response->decoded_content;
-    warn "JSON: $json";
+
+    warn "REQUEST: $url";
+    warn "RESPONSE: $json";
+
     my $data =
       {};    #my $data = decode_json($json); ##FIXME: API is only returning XML
 
@@ -340,11 +348,10 @@ sub end_transaction_cancel {
       join( '&', map { "$_=" . uri_escape( $content->{$_} ) } keys %$content );
 
     my $url = "$ServerAddress?EndTransaction&$params";
-    warn "URL: $url";
 
     my $ua = LWP::UserAgent->new;
 
-    my $request  = HTTP::Request::Common::GET( $url, Header => $header, );
+    my $request  = HTTP::Request::Common::GET( $url, Header => $header );
     my $response = $ua->request($request);
 
     unless ( $response->is_success ) {
@@ -353,7 +360,10 @@ sub end_transaction_cancel {
     }
 
     my $json = $response->decoded_content;
-    warn "CANCEL JSON: $json";
+
+    warn "REQUEST: $url";
+    warn "RESPONSE: $json";
+
     $json = encode_json( { ret => 0 } )
       ;    #FIXME once we are getting JSON, hard coded to success
 

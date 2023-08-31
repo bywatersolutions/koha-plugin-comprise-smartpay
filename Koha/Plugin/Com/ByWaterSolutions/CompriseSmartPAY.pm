@@ -82,6 +82,7 @@ sub configure {
 ## TODO: rename to correct name once js is complete
 sub intranet_js {
     return q|
+<script>
 $(document).ready(function() {
     const smartpayButton = `<input style="margin-left: 5px" type="submit" id="pay-selected-via-smartpay" name="pay_via_smartpay" value="Pay via SmartPAY" class="submit"> 
   <div class="modal fade" id="smartpayModal" role="dialog">
@@ -122,6 +123,7 @@ $(document).ready(function() {
 
         const debit_url = `http://192.168.1.20:8081/api/v1/contrib/smartpay/get_debits/${accountlines}`;
         $.getJSON(debit_url, function(data) {
+            console.log(data);
             const total = data.total;
             let amount = prompt("Enter amount to collect", total);
             if (amount != null) {
@@ -136,6 +138,7 @@ $(document).ready(function() {
                     amount = encodeURIComponent(amount * 100); // Periods asplode things, so we send the amount in cents
                     const send_transaction_url = `/api/v1/contrib/smartpay/send_transaction/${accountlines}/${amount}`;
                     $.getJSON(send_transaction_url, function(data) {
+                        console.log(data);
                         if (data.ret == 0) {
                             $('#smartpayModal').modal({
                                 backdrop: 'static',
@@ -212,6 +215,7 @@ $(document).ready(function() {
     });
 
 });
+</script>
 |;
 }
 
