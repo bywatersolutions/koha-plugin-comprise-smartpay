@@ -55,7 +55,16 @@
 			</div>
 
 			<div class="form-group">
+				<label for="RegisterMapping">Register Mapping:</label>
                 <textarea rows="20" cols="100" name="RegisterMapping">[% RegisterMapping %]</textarea>
+                <span class="hint">
+                    Mapping of Koha register IDs to terminal IDs, e.g.:
+                    <pre>
+1: 2
+3: 4
+5: 6
+                    </pre>
+                </span>
 			</div>
 		</fieldset>
 
